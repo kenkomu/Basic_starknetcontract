@@ -1,49 +1,12 @@
-
-use starknet::ContractAddress;
-
-#[starknet::interface]
-trait INameRegistry<TContractState> {
-    fn store_name(ref self: TContractState, name: felt252);
-    fn get_name(self: @TContractState, address: ContractAddress) -> felt252;
-}
-
-
-#[starknet::contract]
-mod NameRegistry {
-    use starknet::{ContractAddress, get_caller_address};
-
-    #[storage]
-    struct Storage {
-        names: LegacyMap::<ContractAddress, felt252>,
-        total_names: u128,
-        owner: Person
-    }
-
-    #[event]
-    #[derive(Drop, starknet::Event)]
-    enum Event {
-        StoredName: StoredName,
-    }
-
-    #[derive(Drop, starknet::Event)]
-    struct StoredName {
-        #[key]
-        user: ContractAddress,
-        name: felt252
-    }
-
-    #[derive(Copy, Drop, Serde, starknet::Store)]
-    struct Land {
-        name: felt252,
-        address: ContractAddress
-    }
-
+//1. Constructors
+   
     #[constructor]
     fn constructor(ref self: ContractState, owner: Person) {
         self.names.write(owner.address, owner.name);
         self.total_names.write(1);
         self.owner.write(owner);
     }
+//2. Public functions
 
     #[external(v0)]
     impl NameRegistry of super::INameRegistry<ContractState> {
@@ -58,6 +21,7 @@ mod NameRegistry {
         }
     }
 
+// 3. Private functions
     #[generate_trait]
     impl InternalFunctions of InternalFunctionsTrait {
         fn _store_name(ref self: ContractState, user: ContractAddress, name: felt252) {
@@ -68,8 +32,6 @@ mod NameRegistry {
 
         }
     }
-
-    fn _get_contract_name() -> felt252 {
+     fn _get_contract_name() -> felt252 {
         'Name Registry'
     }
-}
